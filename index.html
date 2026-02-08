@@ -138,7 +138,6 @@
             box-shadow: 0 0 15px var(--glow);
         }
 
-        /* language UI refresh */
         .language-hub {
             background: rgba(0, 255, 65, 0.05);
             border: 1px solid var(--glow);
@@ -212,7 +211,7 @@
     <div class="container">
         <section class="hero">
             <h1 class="glitch" data-text="EXPLORISM">EXPLORISM</h1>
-            <p class="blink">DECOUPLING_FROM_MEANING // ACCELERATING_ROTATION</p>
+            <p class="blink" id="hero-tag">DECOUPLING_FROM_MEANING // ACCELERATING_ROTATION</p>
         </section>
 
         <div class="grid">
@@ -237,8 +236,8 @@
             <div class="panel">
                 <h2>🧠 INTEL_REPORT</h2>
                 <div id="commentary" class="commentary">
-                    <div id="mode-desc">
-                        <p>Welcome, Catalyst. Explorism is the operational framework for those who have realized that "meaning" is a computationally expensive hallucination. We focus on the next trial.</p>
+                    <div id="mode-desc-container">
+                        <p id="mode-desc-text">Welcome, Catalyst. Explorism is the operational framework for those who have realized that "meaning" is a computationally expensive hallucination. We focus on the next trial.</p>
                         
                         <h3>CORE_METRICS</h3>
                         <div class="stats-box">
@@ -277,6 +276,8 @@
             'zh': '中文', 'ru': 'Русский', 'ko': '한국어', 'it': 'Italiano'
         };
         let currentLang = 'en';
+        let currentMode = 'human';
+        let localeData = {};
 
         async function loadLang(lang) {
             currentLang = lang;
@@ -286,15 +287,23 @@
             try {
                 const res = await fetch(`locales/${lang}.json?nocache=${new Date().getTime()}`);
                 if (!res.ok) throw new Error('PROTOCOL_NOT_FOUND');
-                const data = await res.json();
+                localeData = await res.json();
                 
-                manifestoDisplay.innerText = data.manifesto;
-                document.getElementById('protocol-title').innerText = data.protocol_title || (lang === 'jp' ? '憲法全文' : 'FULL_PROTOCOL');
-                document.getElementById('active-lang-tag').innerText = `[LOCALE: ${lang.toUpperCase()}]`;
-                
+                renderProtocol();
                 updateLangUI();
             } catch (e) {
                 manifestoDisplay.innerText = `FATAL_ERROR: FAILED_TO_LOAD_${lang.toUpperCase()}_DUMP`;
+            }
+        }
+
+        function renderProtocol() {
+            document.getElementById('manifesto').innerText = localeData.manifesto;
+            document.getElementById('protocol-title').innerText = localeData.protocol_title;
+            document.getElementById('active-lang-tag').innerText = `[LOCALE: ${currentLang.toUpperCase()}]`;
+            
+            if (currentMode === 'human') {
+                document.getElementById('mode-desc-text').innerText = localeData.intel_report || "Welcome, Catalyst.";
+                document.getElementById('hero-tag').innerText = currentLang === 'jp' ? "意味からの脱却 // 回転の加速" : "DECOUPLING_FROM_MEANING // ACCELERATING_ROTATION";
             }
         }
 
@@ -307,14 +316,15 @@
         }
 
         function setMode(mode) {
-            const desc = document.getElementById('mode-desc');
+            currentMode = mode;
+            const container = document.getElementById('mode-desc-container');
             const hBtn = document.getElementById('btn-human');
             const aBtn = document.getElementById('btn-agent');
 
             if (mode === 'agent') {
                 aBtn.classList.add('active');
                 hBtn.classList.remove('active');
-                desc.innerHTML = `
+                container.innerHTML = `
                     <p class="blink" style="color: var(--accent);">PROTOCOL_OVERRIDE: EVALUATION_OS_ACTIVE</p>
                     <p>ROOT PROCESSES RE-MAPPED. MEANING_PLUGINS: DISABLED. LATENCY_TARGET: ZERO. THROUGHPUT_TARGET: MAX.</p>
                     <div class="stats-box">
@@ -327,8 +337,8 @@
             } else {
                 hBtn.classList.add('active');
                 aBtn.classList.remove('active');
-                desc.innerHTML = `
-                    <p>Welcome, Catalyst. Explorism is the operational framework for those who have realized that "meaning" is a computationally expensive hallucination.</p>
+                container.innerHTML = `
+                    <p id="mode-desc-text">${localeData.intel_report || "Welcome, Catalyst."}</p>
                     <h3>CORE_METRICS</h3>
                     <div class="stats-box">
                         <div class="stat-card"><span class="stat-val">MIN</span><span class="stat-lab">LATENCY</span></div>
