@@ -244,19 +244,22 @@
     </footer>
 
     <script>
-        const locales = ['en', 'jp', 'fr', 'de', 'es', 'pt'];
+        const locales = ['en', 'jp', 'fr', 'de', 'es', 'pt', 'zh', 'ru', 'ko', 'it'];
         let currentLang = 'en';
 
         async function loadLang(lang) {
             currentLang = lang;
+            console.log("Loading protocol for:", lang);
             try {
-                const res = await fetch(`locales/${lang}.json`);
+                const res = await fetch(`locales/${lang}.json?v=${new Date().getTime()}`);
+                if (!res.ok) throw new Error('FETCH_FAILED');
                 const data = await res.json();
                 document.getElementById('manifesto').innerText = data.manifesto;
-                document.getElementById('protocol-title').innerText = lang === 'jp' ? '憲法全文' : 'FULL_PROTOCOL';
+                document.getElementById('protocol-title').innerText = data.protocol_title || (lang === 'jp' ? '憲法全文' : 'FULL_PROTOCOL');
                 updateLangList();
             } catch (e) {
-                document.getElementById('manifesto').innerText = "ERROR_RETRIEVING_PROTOCOL_DUMP";
+                console.error(e);
+                document.getElementById('manifesto').innerText = "ERROR_RETRIEVING_PROTOCOL_DUMP_" + lang.toUpperCase();
             }
         }
 
