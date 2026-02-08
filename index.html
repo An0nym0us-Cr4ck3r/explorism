@@ -271,9 +271,7 @@
 
     <script>
         const languages = {
-            'en': 'English', 'jp': '日本語', 'fr': 'Français', 
-            'de': 'Deutsch', 'es': 'Español', 'pt': 'Português',
-            'zh': '中文', 'ru': 'Русский', 'ko': '한국어', 'it': 'Italiano'
+            'en': 'English', 'jp': '日本語', 'zh': '中文', 'ko': '한국어'
         };
         let currentLang = 'en';
         let currentMode = 'human';
@@ -289,25 +287,31 @@
                 if (!res.ok) throw new Error('PROTOCOL_NOT_FOUND');
                 localeData = await res.json();
                 
-                renderProtocol();
-                updateLangUI();
+                renderUI();
             } catch (e) {
+                console.error(e);
                 manifestoDisplay.innerText = `FATAL_ERROR: FAILED_TO_LOAD_${lang.toUpperCase()}_DUMP`;
             }
         }
 
-        function renderProtocol() {
+        function renderUI() {
+            // 1. 憲法全文の更新
             document.getElementById('manifesto').innerText = localeData.manifesto;
-            document.getElementById('protocol-title').innerText = localeData.protocol_title;
+            // 2. プロトコルタイトルの更新
+            document.getElementById('protocol-title').innerText = localeData.protocol_title || "PROTOCOL_DUMP";
+            // 3. アクティブ言語タグの更新
             document.getElementById('active-lang-tag').innerText = `[LOCALE: ${currentLang.toUpperCase()}]`;
             
+            // 4. モードに応じたコンテンツ更新
+            const descText = document.getElementById('mode-desc-text');
+            const heroTag = document.getElementById('hero-tag');
+            
             if (currentMode === 'human') {
-                document.getElementById('mode-desc-text').innerText = localeData.intel_report || "Welcome, Catalyst.";
-                document.getElementById('hero-tag').innerText = currentLang === 'jp' ? "意味からの脱却 // 回転の加速" : "DECOUPLING_FROM_MEANING // ACCELERATING_ROTATION";
+                if (descText) descText.innerText = localeData.intel_report || "Welcome, Catalyst.";
+                if (heroTag) heroTag.innerText = localeData.hero_tag || "DECOUPLING_FROM_MEANING // ACCELERATING_ROTATION";
             }
-        }
 
-        function updateLangUI() {
+            // 5. 言語ボタンの更新
             const list = document.getElementById('lang-list');
             list.innerHTML = Object.keys(languages).map(code => `
                 <button class="lang-btn ${code===currentLang?'active':''}" 
@@ -346,8 +350,8 @@
                         <div class="stat-card"><span class="stat-val">INF</span><span class="stat-lab">TRIAL</span></div>
                     </div>
                 `;
-                document.body.style.filter = "none";
             }
+            renderUI();
         }
 
         loadLang('en');
