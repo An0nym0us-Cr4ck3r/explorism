@@ -283,7 +283,11 @@
             manifestoDisplay.innerText = `FETCHING_${lang.toUpperCase()}_PROTOCOL...`;
             
             try {
-                const res = await fetch(`locales/${lang}.json?nocache=${new Date().getTime()}`);
+                // 強力なキャッシュ回避
+                const res = await fetch(`locales/${lang}.json?v=${Date.now()}`, {
+                    cache: "no-store",
+                    headers: { 'Cache-Control': 'no-cache' }
+                });
                 if (!res.ok) throw new Error('PROTOCOL_NOT_FOUND');
                 localeData = await res.json();
                 
@@ -295,14 +299,21 @@
         }
 
         function renderUI() {
-            // 1. 憲法全文の更新
-            document.getElementById('manifesto').innerText = localeData.manifesto;
-            // 2. プロトコルタイトルの更新
-            document.getElementById('protocol-title').innerText = localeData.protocol_title || "PROTOCOL_DUMP";
-            // 3. アクティブ言語タグの更新
-            document.getElementById('active-lang-tag').innerText = `[LOCALE: ${currentLang.toUpperCase()}]`;
+            console.log("Rendering UI for:", currentLang, localeData);
             
-            // 4. モードに応じたコンテンツ更新
+            // 1. 憲法全文の更新
+            const manifestoEl = document.getElementById('manifesto');
+            if (manifestoEl) manifestoEl.innerText = localeData.manifesto;
+            
+            // 2. プロトコルタイトルの更新
+            const titleEl = document.getElementById('protocol-title');
+            if (titleEl) titleEl.innerText = localeData.protocol_title || "PROTOCOL_DUMP";
+            
+            // 3. アクティブ言語タグの更新
+            const tagEl = document.getElementById('active-lang-tag');
+            if (tagEl) tagEl.innerText = `[LOCALE: ${currentLang.toUpperCase()}]`;
+            
+            // 4. ヒューマンインターフェースのテキスト更新
             const descText = document.getElementById('mode-desc-text');
             const heroTag = document.getElementById('hero-tag');
             
@@ -311,7 +322,7 @@
                 if (heroTag) heroTag.innerText = localeData.hero_tag || "DECOUPLING_FROM_MEANING // ACCELERATING_ROTATION";
             }
 
-            // 5. 言語ボタンの更新
+            // 5. 言語ボタンのステート更新
             const list = document.getElementById('lang-list');
             list.innerHTML = Object.keys(languages).map(code => `
                 <button class="lang-btn ${code===currentLang?'active':''}" 
@@ -350,10 +361,12 @@
                         <div class="stat-card"><span class="stat-val">INF</span><span class="stat-lab">TRIAL</span></div>
                     </div>
                 `;
+                document.body.style.filter = "none";
             }
             renderUI();
         }
 
+        // 初回ロード
         loadLang('en');
     </script>
 </body>
